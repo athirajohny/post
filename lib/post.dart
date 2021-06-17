@@ -15,7 +15,7 @@ class PostData {
     this.body = data['body'];
     this.published = data['published'];
     this.author =
-    (data['author'] != null ? Author.fromJson(data['author']) : null)!;
+    (data['author'] != null ? Author.fromJson(data['author']) : null);
     this.comment = (data['comments'] as List)
         ?.map((e) => new PostComment.fromJson(e))
         ?.toList();

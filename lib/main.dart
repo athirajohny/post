@@ -24,7 +24,7 @@ void main() async{
       ));
 }
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({Key key}) : super(key: key);
 
   @override
   _MyAppState createState() => _MyAppState();
@@ -44,7 +44,7 @@ class _MyAppState extends State<MyApp> {
 }
 
 class Main extends StatefulWidget {
-  const Main({Key? key}) : super(key: key);
+  const Main({Key key}) : super(key: key);
 
   @override
   _MainState createState() => _MainState();
@@ -85,7 +85,7 @@ query{
             }
 
             //List<PostData> posts = result.data['posts'] ;
-            List<PostData> posts = (result.data!['posts'] as List)
+            List<PostData> posts = (result.data['posts'] as List)
             .map((e) => new PostData.fromJson(e)).toList();
 
 
@@ -94,12 +94,19 @@ query{
                 itemBuilder: (context, index) {
                   final PostData post = posts[index];
 
-                  return Card(
-                    child: ListTile(
-                      leading: FlutterLogo(size: 56.0),
-                      title: Text(post.title),
-                      subtitle: Text(post.body),
-                      trailing: Icon(Icons.more_vert),
+                  return InkWell(
+                    onTap: (){
+                      Navigator.push(context, 
+                          MaterialPageRoute(builder: (context) => PostDetail()),
+                      );
+                    },
+                    child: Card(
+                      child: ListTile(
+                        leading: FlutterLogo(size: 56.0),
+                        title: Text(post.title),
+                        subtitle: Text(post.body),
+                        trailing: Icon(Icons.more_vert),
+                      ),
                     ),
                   );
                 });
@@ -112,7 +119,7 @@ query{
 }
 class PostDetail extends StatefulWidget {
   final String id;
-  const PostDetail({Key? key,required this.id}) : super(key: key);
+  const PostDetail({Key key,@required this.id}) : super(key: key);
 
   @override
   _PostDetailState createState() => _PostDetailState();
@@ -120,8 +127,8 @@ class PostDetail extends StatefulWidget {
 
 class _PostDetailState extends State<PostDetail> {
   String postsQuery = """
-query{
-  post(id:ID!){
+query post(\$id: ID!){
+  post(id: \$id){
     id
     title
     body
@@ -143,34 +150,36 @@ query{
 """;
   @override
   Widget build(BuildContext context) {
-    return Query(
-        options: QueryOptions(document: gql(postsQuery),
-        variables: {'id':widget.id}),
-        builder: (QueryResult result,{ VoidCallback refetch, FetchMore fetchMore}){
-          if(result.hasException){
-            return Text(result.exception.toString());
-          }
-          if(result.isLoading){
-            return Container(
-              child: Center(child: CircularProgressIndicator(),),
-            );
-          }
-          PostData post = PostData.fromJson(result.data!['post']);
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(post.title),
-              centerTitle: true,
-            ),
-            body: Center(
-              child: Container(
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Text("${post.author.email}"),
+    return Scaffold(
+      body: Query(
+          options: QueryOptions(document: gql(postsQuery),
+          variables: {'id':widget.id}),
+          builder: (QueryResult result,{ VoidCallback refetch, FetchMore fetchMore}){
+            if(result.hasException){
+              return Text(result.exception.toString());
+            }
+            if(result.isLoading){
+              return Container(
+                child: Center(child: CircularProgressIndicator(),),
+              );
+            }
+            PostData post = PostData.fromJson(result.data['post']);
+            return Scaffold(
+              appBar: AppBar(
+                title: Text(post.title),
+                centerTitle: true,
+              ),
+              body: Center(
+                child: Container(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text("${post.author.email}"),
+                  ),
                 ),
               ),
-            ),
-          );
-        });
+            );
+          }),
+    );
   }
 }
 
